@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskZone — Organize suas tarefas</title>
+<meta name="description" content="TaskZone — gerenciador de tarefas pessoais para Casa, Escola e Jogos.">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:,">
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">TZ</div>
+      <div>
+        <div class="brand-name">TaskZone</div>
+        <div class="brand-tag">Organize-se</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="nav-group-label">Geral</div>
+      <ul class="nav-list">
+        <li><button class="nav-link" data-nav="dashboard"><span class="ic">🏠</span> Dashboard</button></li>
+        <li><button class="nav-link" data-nav="tarefas"><span class="ic">📋</span> Todas as tarefas</button></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="nav-group-label">Categorias</div>
+      <ul class="nav-list">
+        <li><button class="nav-link" onclick="definirFiltroCategoria('casa')"><span class="ic">🏠</span> Casa</button></li>
+        <li><button class="nav-link" onclick="definirFiltroCategoria('escola')"><span class="ic">🎓</span> Escola / Faculdade</button></li>
+        <li><button class="nav-link" onclick="definirFiltroCategoria('jogos')"><span class="ic">🎮</span> Jogos</button></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="nav-group-label">Acompanhar</div>
+      <ul class="nav-list">
+        <li><button class="nav-link" data-nav="calendario"><span class="ic">📅</span> Calendário</button></li>
+        <li><button class="nav-link" data-nav="estatisticas"><span class="ic">📊</span> Estatísticas</button></li>
+        <li><button class="nav-link" data-nav="conquistas"><span class="ic">🏆</span> Conquistas</button></li>
+        <li><button class="nav-link" data-nav="foco"><span class="ic">⏱️</span> Modo Foco</button></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="nav-group-label">Outros</div>
+      <ul class="nav-list">
+        <li><button class="nav-link" data-nav="arquivadas"><span class="ic">🗄️</span> Arquivadas</button></li>
+        <li><button class="nav-link" data-nav="configuracoes"><span class="ic">⚙️</span> Configurações</button></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      TaskZone © 2026<br>Organize suas tarefas. Conclua seus objetivos.
+    </div>
+  </aside>
+
+  <div class="main-area">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="icon-btn hamburger-btn" id="btn-hamburguer" aria-label="Abrir menu">☰</button>
+        <div class="topbar-title">
+          <h1 id="topbar-titulo">Dashboard</h1>
+          <p id="topbar-subtitulo">Aqui está o que você precisa fazer hoje</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="icon-btn toggle-tema-btn" title="Alternar tema claro/escuro" aria-label="Alternar tema">🌙</button>
+        <button class="icon-btn" onclick="abrirModalTarefa()" title="Nova tarefa" aria-label="Nova tarefa">➕</button>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <!-- ============================= DASHBOARD ============================= -->
+      <section class="view active" id="view-dashboard">
+        <div class="hero-greeting">
+          <h1>Olá! 👋</h1>
+          <p>Aqui está o que você precisa fazer hoje.</p>
+        </div>
+
+        <div class="notice-stack" id="notificacoes-dashboard"></div>
+
+        <div class="grid grid-4" style="margin-bottom:18px;">
+          <div class="card metric-card fade-in">
+            <div class="metric-icon">📋</div>
+            <span class="metric-label">Total de tarefas</span>
+            <span class="metric-value mono" id="metric-total">0</span>
+          </div>
+          <div class="card metric-card fade-in">
+            <div class="metric-icon" style="background:var(--success-dim); color:var(--success);">✅</div>
+            <span class="metric-label">Concluídas</span>
+            <span class="metric-value mono" id="metric-concluidas">0</span>
+          </div>
+          <div class="card metric-card fade-in">
+            <div class="metric-icon" style="background:var(--media-dim); color:var(--media);">⏳</div>
+            <span class="metric-label">Pendentes</span>
+            <span class="metric-value mono" id="metric-pendentes">0</span>
+          </div>
+          <div class="card metric-card fade-in">
+            <div class="metric-icon" style="background:var(--alta-dim); color:var(--alta);">⚠️</div>
+            <span class="metric-label">Atrasadas</span>
+            <span class="metric-value mono" id="metric-atrasadas">0</span>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:18px; align-items:start;">
+          <div class="card progress-ring-card fade-in">
+            <div class="progress-ring-wrap">
+              <svg width="128" height="128" viewBox="0 0 128 128">
+                <circle class="progress-ring-bg" cx="64" cy="64" r="54"></circle>
+                <circle class="progress-ring-fill" id="ring-fill" cx="64" cy="64" r="54"></circle>
+              </svg>
+              <div class="progress-ring-label">
+                <span class="pct mono" id="ring-pct">0%</span>
+                <span class="lbl">hoje</span>
+              </div>
+            </div>
+            <div class="progress-ring-info">
+              <h3>Progresso de hoje</h3>
+              <p id="ring-sub">0 de 0 tarefas concluídas</p>
+            </div>
+          </div>
+
+          <div class="card fade-in smart-summary" id="resumo-inteligente"></div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:18px; align-items:start;">
+          <div class="card fade-in">
+            <div class="section-title">Progresso por categoria</div>
+            <div class="section-sub">Tarefas concluídas em cada área</div>
+            <div id="progresso-categorias"></div>
+          </div>
+
+          <div class="card fade-in">
+            <div class="section-title">Tarefas de hoje</div>
+            <div class="section-sub">O que vence no dia de hoje</div>
+            <div class="task-list" id="lista-tarefas-hoje"></div>
+          </div>
+        </div>
+
+        <div class="card fade-in">
+          <div class="section-title">Histórico de tarefas</div>
+          <div class="section-sub">Tarefas concluídas recentemente, agrupadas por dia</div>
+          <div id="lista-historico"></div>
+        </div>
+
+        <footer class="legal-footer">TaskZone © 2026 — Organize suas tarefas. Conclua seus objetivos.</footer>
+      </section>
+
+      <!-- ============================= TODAS AS TAREFAS ============================= -->
+      <section class="view" id="view-tarefas">
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="ic">🔎</span>
+            <input type="text" id="input-busca" placeholder="Pesquisar tarefas..." aria-label="Pesquisar tarefas">
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <select class="select-control" id="select-ordenacao" aria-label="Ordenar tarefas">
+              <option value="recentes">Mais recentes</option>
+              <option value="antigas">Mais antigas</option>
+              <option value="prioridade">Prioridade</option>
+              <option value="vencimento">Data de vencimento</option>
+              <option value="nome">Nome</option>
+            </select>
+            <button class="btn btn-primary" id="btn-nova-tarefa">+ Nova tarefa</button>
+          </div>
+        </div>
+
+        <div class="filter-row" role="group" aria-label="Filtros rápidos">
+          <button class="filter-chip active" data-filtro-rapido="todas">Todas</button>
+          <button class="filter-chip" data-filtro-rapido="pendentes">Pendentes</button>
+          <button class="filter-chip" data-filtro-rapido="concluidas">Concluídas</button>
+          <button class="filter-chip" data-filtro-rapido="atrasadas">Atrasadas</button>
+          <button class="filter-chip" data-filtro-rapido="hoje">Hoje</button>
+        </div>
+        <div class="filter-row" role="group" aria-label="Filtro por categoria">
+          <button class="filter-chip active" data-filtro-categoria="todas">Todas as categorias</button>
+          <button class="filter-chip" data-filtro-categoria="casa">🏠 Casa</button>
+          <button class="filter-chip" data-filtro-categoria="escola">🎓 Escola</button>
+          <button class="filter-chip" data-filtro-categoria="jogos">🎮 Jogos</button>
+        </div>
+
+        <div class="task-list" id="lista-tarefas" style="margin-top:16px;"></div>
+      </section>
+
+      <!-- ============================= CALENDÁRIO ============================= -->
+      <section class="view" id="view-calendario">
+        <div class="card fade-in">
+          <div class="calendar-header">
+            <h2 id="calendar-titulo">Mês Ano</h2>
+            <div class="calendar-nav">
+              <button class="btn btn-secondary btn-sm" id="calendar-mes-anterior" aria-label="Mês anterior">←</button>
+              <button class="btn btn-secondary btn-sm" id="calendar-ir-hoje">Hoje</button>
+              <button class="btn btn-secondary btn-sm" id="calendar-mes-proximo" aria-label="Próximo mês">→</button>
+            </div>
+          </div>
+          <div class="calendar-grid" id="calendar-grid"></div>
+        </div>
+
+        <div class="card fade-in calendar-day-panel" id="calendar-day-panel"></div>
+      </section>
+
+      <!-- ============================= ESTATÍSTICAS ============================= -->
+      <section class="view" id="view-estatisticas">
+        <div class="grid grid-4" style="margin-bottom:18px;">
+          <div class="card stat-highlight fade-in">
+            <span class="ic">📋</span>
+            <div><h3 id="stat-total-criadas">0</h3><p>Tarefas criadas</p></div>
+          </div>
+          <div class="card stat-highlight fade-in">
+            <span class="ic">✅</span>
+            <div><h3 id="stat-total-concluidas">0</h3><p>Tarefas concluídas</p></div>
+          </div>
+          <div class="card stat-highlight fade-in">
+            <span class="ic">⚠️</span>
+            <div><h3 id="stat-total-atrasadas">0</h3><p>Tarefas atrasadas</p></div>
+          </div>
+          <div class="card stat-highlight fade-in">
+            <span class="ic">🔥</span>
+            <div><h3 id="stat-sequencia">0</h3><p>Dias em sequência</p></div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:18px; align-items:start;">
+          <div class="card fade-in">
+            <div class="section-title">🔥 Sequência atual</div>
+            <p id="stat-sequencia-desc" style="font-size:13.5px; color:var(--text-secondary); line-height:1.6;"></p>
+          </div>
+          <div class="card fade-in">
+            <div class="section-title">Destaques por categoria</div>
+            <p style="font-size:13.5px; color:var(--text-secondary); margin-bottom:6px;">Categoria com mais tarefas: <strong id="stat-categoria-mais" style="color:var(--text-primary);"></strong></p>
+            <p style="font-size:13.5px; color:var(--text-secondary);">Maior taxa de conclusão: <strong id="stat-categoria-taxa" style="color:var(--text-primary);"></strong></p>
+          </div>
+        </div>
+
+        <div class="card fade-in">
+          <div class="section-title">Progresso geral</div>
+          <div style="display:flex; align-items:baseline; gap:10px; margin-bottom:10px;">
+            <span class="mono" id="stat-progresso-geral-pct" style="font-size:28px; font-weight:700;">0%</span>
+            <span class="section-sub" id="stat-progresso-geral-desc" style="margin-bottom:0;"></span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="stat-progresso-geral-fill" style="width:0%"></div></div>
+        </div>
+      </section>
+
+      <!-- ============================= CONQUISTAS ============================= -->
+      <section class="view" id="view-conquistas">
+        <div class="card fade-in">
+          <div class="section-title">Minhas conquistas</div>
+          <div class="section-sub">Desbloqueie medalhas concluindo tarefas no TaskZone</div>
+          <div class="achievement-grid" id="grid-conquistas"></div>
+        </div>
+      </section>
+
+      <!-- ============================= MODO FOCO ============================= -->
+      <section class="view" id="view-foco">
+        <div class="card fade-in focus-shell">
+          <div class="form-group focus-select">
+            <label for="foco-select-tarefa">Tarefa em foco</label>
+            <select class="form-control" id="foco-select-tarefa"></select>
+          </div>
+
+          <div class="focus-task-name" id="foco-tarefa-nome">Nenhuma tarefa selecionada</div>
+          <div class="focus-task-desc" id="foco-tarefa-desc">Escolha uma tarefa acima para focar nela.</div>
+
+          <div class="focus-timer-ring">
+            <svg viewBox="0 0 256 256">
+              <circle class="focus-ring-bg" cx="128" cy="128" r="118"></circle>
+              <circle class="focus-ring-fill" id="foco-ring-fill" cx="128" cy="128" r="118"></circle>
+            </svg>
+            <div class="focus-timer-display mono" id="foco-timer-display">25:00</div>
+          </div>
+
+          <div class="focus-preset-row">
+            <button type="button" class="btn btn-secondary btn-sm" data-foco-preset="5">5 min</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-foco-preset="10">10 min</button>
+            <button type="button" class="btn btn-secondary btn-sm active" data-foco-preset="25">25 min</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-foco-preset="50">50 min</button>
+          </div>
+
+          <div class="focus-controls">
+            <button class="btn btn-primary" id="btn-foco-iniciar">▶ Iniciar</button>
+            <button class="btn btn-secondary" id="btn-foco-pausar">⏸ Pausar</button>
+            <button class="btn btn-secondary" id="btn-foco-reiniciar">↺ Reiniciar</button>
+          </div>
+
+          <button class="btn btn-success btn-block" id="btn-foco-concluir" style="margin-top:18px;" disabled>✓ Concluir tarefa</button>
+
+          <div class="focus-message" id="foco-mensagem"></div>
+        </div>
+      </section>
+
+      <!-- ============================= ARQUIVADAS ============================= -->
+      <section class="view" id="view-arquivadas">
+        <div class="card fade-in">
+          <div class="section-title">Tarefas arquivadas</div>
+          <div class="section-sub">Tarefas antigas guardadas fora da lista principal. Você pode restaurá-las quando quiser.</div>
+          <div class="task-list" id="lista-arquivadas"></div>
+        </div>
+      </section>
+
+      <!-- ============================= CONFIGURAÇÕES ============================= -->
+      <section class="view" id="view-configuracoes">
+        <div class="card fade-in" style="margin-bottom:18px;">
+          <div class="section-title">Preferências</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Tema</h4>
+              <p>Alternar entre tema claro e escuro</p>
+            </div>
+            <button class="btn btn-secondary btn-sm toggle-tema-btn">🌙</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Animações</h4>
+              <p>Ativar ou desativar animações da interface</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="toggle-animacoes">
+              <span class="switch-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card fade-in" style="margin-bottom:18px;">
+          <div class="section-title">Dados</div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Limpar tarefas concluídas</h4>
+              <p>Remove permanentemente todas as tarefas já concluídas</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-limpar-concluidas">Limpar</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Restaurar dados de demonstração</h4>
+              <p>Substitui suas tarefas pelas tarefas de exemplo do TaskZone</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-restaurar-demo">Restaurar</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Começar do zero</h4>
+              <p>Remove as tarefas de demonstração e deixa sua lista vazia</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-comecar-zero">Começar do zero</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Exportar tarefas</h4>
+              <p>Baixe um arquivo .json com todos os seus dados</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-exportar-dados">Exportar</button>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Importar tarefas</h4>
+              <p>Restaure um backup .json exportado anteriormente</p>
+            </div>
+            <label class="btn btn-secondary btn-sm" for="input-importar-dados" style="margin:0;">
+              Importar
+              <input type="file" id="input-importar-dados" accept="application/json" style="display:none;">
+            </label>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-text">
+              <h4>Apagar todos os dados</h4>
+              <p>Remove permanentemente tudo o que está salvo no TaskZone neste navegador</p>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btn-apagar-tudo">Apagar tudo</button>
+          </div>
+        </div>
+
+        <div class="legal-footer">
+          Seus dados são armazenados localmente neste navegador. Se você limpar os dados do navegador ou trocar de dispositivo, eles poderão ser perdidos. Use a função de exportação para criar um backup.
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Botão flutuante (mobile) -->
+<button class="btn btn-primary btn-fab" id="btn-fab-nova-tarefa" aria-label="Nova tarefa">➕</button>
+
+<!-- ============================= MODAL: NOVA/EDITAR TAREFA ============================= -->
+<div class="modal-overlay" id="modal-tarefa">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-tarefa-titulo">Nova tarefa</h3>
+      <button class="modal-close" onclick="fecharModal('modal-tarefa')" aria-label="Fechar">✕</button>
+    </div>
+    <form id="form-tarefa">
+      <div class="form-group">
+        <label for="tarefa-nome">Nome da tarefa</label>
+        <input type="text" id="tarefa-nome" class="form-control" placeholder="Ex.: Fazer trabalho de Java" required>
+      </div>
+      <div class="form-group">
+        <label for="tarefa-descricao">Descrição</label>
+        <textarea id="tarefa-descricao" class="form-control" placeholder="Detalhes da tarefa (opcional)"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Categoria</label>
+        <div class="category-picker" id="category-picker" data-selecionado="casa">
+          <div class="pick-option" data-valor="casa">🏠 Casa</div>
+          <div class="pick-option" data-valor="escola">🎓 Escola</div>
+          <div class="pick-option" data-valor="jogos">🎮 Jogos</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Prioridade</label>
+        <div class="priority-picker" id="priority-picker" data-selecionado="media">
+          <div class="pick-option" data-valor="alta">🔴 Alta</div>
+          <div class="pick-option" data-valor="media">🟡 Média</div>
+          <div class="pick-option" data-valor="baixa">🟢 Baixa</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="tarefa-vencimento">Data de vencimento</label>
+          <input type="date" id="tarefa-vencimento" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="tarefa-horario">Horário (opcional)</label>
+          <input type="time" id="tarefa-horario" class="form-control">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="tarefa-repeticao">Repetir tarefa</label>
+        <select id="tarefa-repeticao" class="form-control">
+          <option value="nao">Não repetir</option>
+          <option value="diaria">Todos os dias</option>
+          <option value="semanal">Toda semana</option>
+          <option value="mensal">Todo mês</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="tarefa-observacao">Observação</label>
+        <textarea id="tarefa-observacao" class="form-control" placeholder="Alguma observação extra? (opcional)"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary btn-block" onclick="fecharModal('modal-tarefa')">Cancelar</button>
+        <button type="submit" class="btn btn-primary btn-block">Salvar tarefa</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============================= MODAL: CONFIRMAR EXCLUSÃO ============================= -->
+<div class="modal-overlay" id="modal-confirmar-exclusao">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h3>Excluir tarefa</h3>
+      <button class="modal-close" onclick="fecharModal('modal-confirmar-exclusao')" aria-label="Fechar">✕</button>
+    </div>
+    <p style="font-size:14px; color:var(--text-secondary); margin-bottom:20px;">Tem certeza que deseja excluir esta tarefa? Essa ação não pode ser desfeita.</p>
+    <div class="form-actions" style="margin-top:0;">
+      <button type="button" class="btn btn-secondary btn-block" onclick="fecharModal('modal-confirmar-exclusao')">Cancelar</button>
+      <button type="button" class="btn btn-danger btn-block" id="btn-confirmar-exclusao">Excluir</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
