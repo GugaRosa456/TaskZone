@@ -1,19 +1,21 @@
 # TaskZone
 
-TaskZone é um **gerenciador de tarefas pessoais**, feito com **HTML5, CSS3 e JavaScript puro** — sem backend, sem banco de dados e sem frameworks obrigatórios. Organize suas tarefas em três áreas da vida: 🏠 **Casa**, 🎓 **Escola/Faculdade** e 🎮 **Jogos**.
+TaskZone é um **gerenciador de tarefas pessoais**, feito com **HTML5, CSS3 e JavaScript puro** — sem backend, sem banco de dados e sem frameworks obrigatórios. Organize suas tarefas em três áreas da vida: 🏠 **Casa**, 🎓 **Escola/Faculdade** e 🎮 **Jogos**, num **quadro Kanban** com sistema de **XP e níveis**.
 
 Todos os dados ficam salvos no `localStorage` do seu navegador — nada é enviado para nenhum servidor.
 
 ## Funcionalidades
 
-- **Dashboard** com resumo do dia, anel de progresso, progresso por categoria, tarefas de hoje e histórico de conclusões.
-- **Todas as tarefas**: busca em tempo real, filtros rápidos (pendentes, concluídas, atrasadas, hoje), filtro por categoria e ordenação.
+- **Dashboard** com saudação dinâmica, contagem rápida, barra de XP/nível, sequência (streak) em destaque, trilhas de progresso por categoria, tarefas de hoje e histórico de conclusões.
+- **Quadro de tarefas (Kanban)**: três colunas — **A Fazer**, **Em andamento** e **Concluído**. Arraste os cartões entre colunas no computador, ou use o seletor de status dentro do próprio cartão (funciona igual em qualquer dispositivo). Campo de "adicionar tarefa rápida" no topo do quadro.
+- **Sistema de XP e Nível**: concluir tarefas dá XP (mais em prioridades altas); o nível sobe conforme o XP acumula.
 - **Tarefas recorrentes** (diária, semanal, mensal) — ao concluir, a próxima ocorrência é criada automaticamente.
-- **Calendário** mensal com indicador de dias com tarefas; clique em um dia para ver as tarefas dele.
-- **Estatísticas**: total criado, concluído, atrasado, sequência de dias (streak) e destaques por categoria.
-- **Conquistas** desbloqueáveis (primeira tarefa, sequência de 7 dias, 100 tarefas, etc.).
+- **Calendário** mensal com indicador de dias com tarefas.
+- **Estatísticas**: total criado, concluído, atrasado, sequência de dias, nível de XP e destaques por categoria.
+- **Conquistas** desbloqueáveis, com aviso na hora (toast) quando uma nova é destravada.
 - **Modo Foco**: cronômetro Pomodoro (5/10/25/50 min) para uma tarefa por vez.
 - **Arquivamento** de tarefas antigas, com restauração.
+- **Excluir com "Desfazer"**: ao excluir uma tarefa, um aviso permite restaurá-la por alguns segundos.
 - **Exportar/Importar** backup em `.json`.
 - Tema claro/escuro, animações que podem ser desativadas, e layout 100% responsivo (menu lateral vira hambúrguer no celular).
 
