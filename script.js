@@ -65,10 +65,19 @@ TZ.CONQUISTAS_DEF = [
 /* -------------------------------------------------------------------- */
 TZ.gerarId = () => "t-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 
+/* Datas em horário local. Evita o clássico problema de toISOString() avançar
+   o dia à noite em fusos como o do Brasil. */
+TZ.dataLocalISO = (data = new Date()) => {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+};
+
 TZ.dataISO = (offsetDias = 0) => {
   const d = new Date();
   d.setDate(d.getDate() + offsetDias);
-  return d.toISOString().slice(0, 10);
+  return TZ.dataLocalISO(d);
 };
 
 TZ.tarefasDemo = () => {
@@ -142,7 +151,7 @@ TZ.apagarTudo = () => {
 /* -------------------------------------------------------------------- */
 /* Utilitários de data                                                   */
 /* -------------------------------------------------------------------- */
-TZ.hojeISO = () => new Date().toISOString().slice(0, 10);
+TZ.hojeISO = () => TZ.dataLocalISO(new Date());
 
 TZ.formatarDataBR = (isoDate) => {
   if (!isoDate) return "";
@@ -182,7 +191,7 @@ TZ.proximaData = (isoDate, tipo) => {
   if (tipo === "diaria") d.setDate(d.getDate() + 1);
   else if (tipo === "semanal") d.setDate(d.getDate() + 7);
   else if (tipo === "mensal") d.setMonth(d.getMonth() + 1);
-  return d.toISOString().slice(0, 10);
+  return TZ.dataLocalISO(d);
 };
 
 /* -------------------------------------------------------------------- */
@@ -268,7 +277,7 @@ TZ.calcularEstatisticas = (tarefas) => {
    ao menos uma tarefa concluída. */
 TZ.calcularSequencia = (tarefas) => {
   const diasComConclusao = new Set(
-    tarefas.filter(t => t.status === "concluida" && t.concluidoEm).map(t => t.concluidoEm.slice(0, 10))
+    tarefas.filter(t => t.status === "concluida" && t.concluidoEm).map(t => TZ.dataLocalISO(new Date(t.concluidoEm)))
   );
   let sequencia = 0;
   let cursor = new Date(TZ.hojeISO() + "T00:00:00");
@@ -278,7 +287,7 @@ TZ.calcularSequencia = (tarefas) => {
   }
 
   while (true) {
-    const iso = cursor.toISOString().slice(0, 10);
+    const iso = TZ.dataLocalISO(cursor);
     if (diasComConclusao.has(iso)) {
       sequencia++;
       cursor.setDate(cursor.getDate() - 1);
@@ -627,9 +636,9 @@ function renderizarCardKanban(tarefa) {
       <div class="kc-top">
         <span class="kc-nome">${escaparHtml(tarefa.nome)}</span>
         <div class="kc-actions">
-          <button onclick="abrirModalTarefa('${tarefa.id}')" title="Editar">✏️</button>
-          <button onclick="alternarArquivamento('${tarefa.id}')" title="Arquivar">🗄️</button>
-          <button onclick="pedirExclusao('${tarefa.id}')" title="Excluir">🗑️</button>
+          <button onclick="abrirModalTarefa('${tarefa.id}')" title="Editar" aria-label="Editar tarefa">✏️</button>
+          <button onclick="alternarArquivamento('${tarefa.id}')" title="Arquivar" aria-label="Arquivar tarefa">🗄️</button>
+          <button onclick="pedirExclusao('${tarefa.id}')" title="Excluir" aria-label="Excluir tarefa">🗑️</button>
         </div>
       </div>
       <div class="kc-meta">
@@ -679,6 +688,13 @@ function inicializarDragAndDrop() {
 
 function definirFiltroCategoria(categoria) {
   TZ.estado.filtroCategoria = categoria;
+  trocarView("tarefas");
+  sincronizarControlesFiltro();
+  renderizarViewTarefas();
+}
+
+function definirFiltroData(filtro) {
+  TZ.estado.filtroData = filtro;
   trocarView("tarefas");
   sincronizarControlesFiltro();
   renderizarViewTarefas();
@@ -790,9 +806,9 @@ function renderizarCardTarefa(tarefa, opcoes = {}) {
         ${conclusaoHtml}
       </div>
       <div class="task-actions">
-        <button onclick="abrirModalTarefa('${tarefa.id}')" title="Editar">✏️</button>
+        <button onclick="abrirModalTarefa('${tarefa.id}')" title="Editar" aria-label="Editar tarefa">✏️</button>
         ${botaoArquivar}
-        <button onclick="pedirExclusao('${tarefa.id}')" title="Excluir">🗑️</button>
+        <button onclick="pedirExclusao('${tarefa.id}')" title="Excluir" aria-label="Excluir tarefa">🗑️</button>
       </div>
     </div>`;
 }
@@ -1429,8 +1445,8 @@ const RENDERIZADORES_VIEW = {
   arquivadas: renderizarViewArquivadas
 };
 const TITULOS_VIEW = {
-  dashboard: ["Dashboard", "Aqui está o que você precisa fazer hoje"],
-  tarefas: ["Quadro de tarefas", "Arraste entre as colunas ou use os botões do card"],
+  dashboard: ["Visão geral", "Seu dia, suas prioridades e seu progresso"],
+  tarefas: ["Minhas tarefas", "Organize, filtre e mova tarefas entre os status"],
   calendario: ["Calendário", "Visualize suas tarefas por dia"],
   estatisticas: ["Minhas estatísticas", "Acompanhe sua evolução"],
   conquistas: ["Conquistas", "Suas medalhas conquistadas no TaskZone"],
@@ -1480,6 +1496,36 @@ function fecharSidebarMobile() {
   document.getElementById("sidebar-overlay")?.classList.remove("open");
 }
 
+function atualizarDataTopbar() {
+  const el = document.getElementById("topbar-data");
+  if (!el) return;
+  const hoje = new Date();
+  const texto = hoje.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" })
+    .replace(/\./g, "");
+  el.textContent = texto.charAt(0).toUpperCase() + texto.slice(1);
+}
+
+/* Atalhos simples: N cria tarefa e / abre a busca.
+   Não interferem quando o usuário já está digitando em um campo. */
+function inicializarAtalhosTeclado() {
+  document.addEventListener("keydown", (e) => {
+    const alvo = e.target;
+    const digitando = alvo?.matches?.("input, textarea, select, [contenteditable='true']");
+    if (digitando || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    if (e.key.toLowerCase() === "n") {
+      e.preventDefault();
+      abrirModalTarefa();
+    }
+
+    if (e.key === "/") {
+      e.preventDefault();
+      trocarView("tarefas");
+      requestAnimationFrame(() => document.getElementById("input-busca")?.focus());
+    }
+  });
+}
+
 /* -------------------------------------------------------------------- */
 /* Modal (utilitário genérico) — fecha com ESC e ao clicar fora           */
 /* -------------------------------------------------------------------- */
@@ -1502,6 +1548,8 @@ document.addEventListener("DOMContentLoaded", () => {
   inicializarTema();
   inicializarNavegacao();
   inicializarMenuMobile();
+  atualizarDataTopbar();
+  inicializarAtalhosTeclado();
   inicializarPickers();
   inicializarControlesTarefas();
   inicializarCalendario();
